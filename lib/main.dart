@@ -24,6 +24,39 @@ class MyApp extends StatelessWidget {
   }
 }
 
+enum City { stockholm, paris, tokyo, accra }
+
+typedef WeatherEmoji = String;
+
+Future<WeatherEmoji> getWeather({required City city}) {
+  return Future.delayed(
+    const Duration(seconds: 1),
+    () =>
+        {
+          City.stockholm: '❄️',
+          City.paris: '🌧️',
+          City.tokyo: '💨',
+          City.accra: '🌞',
+        }[city] ??
+        '🔥',
+  );
+}
+
+const unknownWeatherEmoji = '🤷🏽‍';
+
+// UI writes to and reads from this
+final currentCityProvider = StateProvider<City?>((ref) => null);
+
+// UI reads this
+final weatherProvider = FutureProvider<WeatherEmoji>((ref) {
+  final city = ref.watch(currentCityProvider);
+  if (city != null) {
+    return getWeather(city: city);
+  } else {
+    return unknownWeatherEmoji;
+  }
+});
+
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
