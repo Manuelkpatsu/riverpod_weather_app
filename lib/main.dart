@@ -57,13 +57,53 @@ final weatherProvider = FutureProvider<WeatherEmoji>((ref) {
   }
 });
 
+// Capitalize the first letter of a string
+extension StringCasingExtension on String {
+  String toCapitalized() =>
+      length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
+}
+
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentWeather = ref.watch(weatherProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Weather')),
+      body: Column(
+        children: [
+          currentWeather.when(
+            data: (data) => Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(data, style: const TextStyle(fontSize: 40)),
+            ),
+            error: (_, __) => const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text('Error 🥲'),
+            ),
+            loading: () => const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: City.values.length,
+              itemBuilder: (context, index) {
+                final city = City.values[index];
+                final isSelected = city == ref.watch(currentCityProvider);
+                return ListTile(
+                  title: Text(city.name.toCapitalized()),
+                  onTap: () => ref.read(currentCityProvider.notifier).state = city,
+                  trailing: isSelected ? const Icon(Icons.check) : null,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
